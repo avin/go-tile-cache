@@ -1,4 +1,6 @@
 {
+    "ttl": 86000,
+    "tries": 3,
     "servers": [
         {
             "alias": "yandex-vec",

@@ -24,9 +24,10 @@ func returnBlankTile(c *TileController) {
 
 func (c *TileController) Get() {
 
+	config := models.GetConfig()
+
 	var ttlSeconds int = 86400 //cache timeout in seconds
 
-	var ttl time.Duration = time.Duration(time.Duration(ttlSeconds) * time.Second); //cache timeout in seconds
 	var x string = c.GetString("x");
 	var y string = c.GetString("y");
 	var z string = c.GetString("z");
@@ -36,7 +37,7 @@ func (c *TileController) Get() {
 	var server = c.GetString("server"); //tile server
 
 	//create tile manager
-	var tileManager = models.TileManager{X: x, Y: y, Z: z, Server: server, GS: gs, TTL: ttl}
+	var tileManager = models.TileManager{X: x, Y: y, Z: z, Server: server, GS: gs}
 
 	//get tile file
 	fileName, err := tileManager.Get();
@@ -46,7 +47,7 @@ func (c *TileController) Get() {
 	}
 
 	//Setup headers
-	c.Ctx.Output.Header("Expires", time.Now().Add(ttl).Format("Sat, 15 Oct 2016 19:31:22 GMT"))
+	c.Ctx.Output.Header("Expires", time.Now().Add(config.TtlDuration).Format("Sat, 15 Oct 2016 19:31:22 GMT"))
 	c.Ctx.Output.Header("Cache-Control", "public, max-age=" + strconv.Itoa(ttlSeconds * 60));
 	c.Ctx.Output.Header("Content-Type", "image/png")
 	c.Ctx.Output.Header("Content-Transfer-Encoding", "binary")

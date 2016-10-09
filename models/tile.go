@@ -10,8 +10,6 @@ import (
 	"path/filepath"
 	"errors"
 	"fmt"
-	"io/ioutil"
-	"encoding/json"
 	"math/rand"
 	"strings"
 	"github.com/astaxie/beego"
@@ -23,23 +21,7 @@ type TileManager struct {
 	Z      string
 	Server string
 	GS     bool
-	TTL    time.Duration
 }
-
-type ServersConfig struct {
-	Servers []ServersConfigItem
-}
-
-type ServersConfigItem struct {
-	Alias string
-	Url     string
-	Subdomains []string
-}
-
-
-// define the type as a generic map
-var serversConfig ServersConfig
-
 
 //create grayScale image version
 func grayScale(filename string) string {
@@ -117,12 +99,14 @@ func (tm *TileManager) getTileUrl() (string, error) {
 
 	var url string
 
-	for _, serverItem:= range serversConfig.Servers {
-		if (serverItem.Alias == tm.Server){
+	config := GetConfig()
+
+	for _, serverItem := range config.Servers {
+		if (serverItem.Alias == tm.Server) {
 
 			url = serverItem.Url
 
-			if (serverItem.Subdomains != nil){
+			if (serverItem.Subdomains != nil) {
 				subdomain := serverItem.Subdomains[rand.Intn(len(serverItem.Subdomains))]
 				url = strings.Replace(url, "{s}", subdomain, -1)
 			}
@@ -135,11 +119,11 @@ func (tm *TileManager) getTileUrl() (string, error) {
 		}
 	}
 
-	if (len(url) == 0){
-		return "", errors.New("Server ["+ tm.Server +"] not configured")
+	if (len(url) == 0) {
+		return "", errors.New("Server [" + tm.Server + "] not configured")
 	}
 
-	if (beego.AppConfig.String("runmode") == "dev"){
+	if (beego.AppConfig.String("runmode") == "dev") {
 		fmt.Println(url)
 	}
 
@@ -148,6 +132,8 @@ func (tm *TileManager) getTileUrl() (string, error) {
 
 //get file from cache or download (and convert to GS)
 func (tm *TileManager) Get() (string, error) {
+
+	config := GetConfig()
 
 	//make path
 	path := filepath.Join("cache", tm.Server, tm.X, tm.Y)
@@ -160,7 +146,7 @@ func (tm *TileManager) Get() (string, error) {
 		toDownload = true;
 	} else {
 		//if file older then ttl duration
-		if (time.Now().Add(0-tm.TTL).After(file.ModTime())) {
+		if (time.Now().Add(0 - config.TtlDuration).After(file.ModTime())) {
 			toDownload = true;
 		}
 	}
@@ -183,7 +169,7 @@ func (tm *TileManager) Get() (string, error) {
 			}
 
 			//If cannot get file in 5 tries - return error
-			if (err != nil && (tries > 5)) {
+			if (err != nil && (tries >= config.Tries)) {
 				return "", err
 			}
 		}
@@ -199,13 +185,33 @@ func (tm *TileManager) Get() (string, error) {
 }
 
 func init() {
-	serversConfigFile := filepath.Join("conf", "servers.json")
 
-	file, err := ioutil.ReadFile(serversConfigFile)
-	if err != nil {
-		fmt.Println("Cannot open servers configuration file:", err)
-		os.Exit(1)
-	}
+	config := GetConfig()
 
-	json.Unmarshal(file, &serversConfig)
+	//Start clear old cache tile files ticker
+	ticker := time.NewTicker(time.Second * 10)
+	go func() {
+		for t := range ticker.C {
+			fmt.Println("Tick at", t)
+
+			visit := func(path string, f os.FileInfo, err error) error {
+
+				if file, err := os.Stat(path); err == nil {
+					//if file older then ttl duration
+					if (time.Now().Add(0 - config.TtlDuration).Before(file.ModTime())) {
+						//delete file/path
+						os.RemoveAll(path)
+					}
+				}
+
+				return nil
+			}
+
+			err := filepath.Walk("./", visit)
+			if (err != nil){
+				fmt.Printf("filepath.Walk() returned %v\n", err)
+			}
+		}
+	}()
+
 }

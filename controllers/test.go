@@ -14,7 +14,7 @@ type TestController struct {
 
 func (c *TestController) Get() {
 
-	serversConfigFile := filepath.Join("conf", "servers.json")
+	serversConfigFile := filepath.Join("conf", "config.json")
 
 	file, err := ioutil.ReadFile(serversConfigFile)
 	if err != nil {

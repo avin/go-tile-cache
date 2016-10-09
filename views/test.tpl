@@ -8,14 +8,36 @@
         <title>Test map</title>
         <link rel="stylesheet" href="/static/css/leaflet.css">
         <style>
+            body, html {
+                height: 100%;
+                padding: 0;
+                margin: 0;
+            }
+
+            .control{
+                z-index: 999;
+                position: fixed;
+                //width: 50%;
+                top: 0;
+                right:0;
+                background: #f4f4f4;
+                padding: 10px;
+                border-left: 1px solid #cccccc;
+                border-bottom: 1px solid #cccccc;
+            }
+
             #map {
                 height: 600px;
+            }
+            #select-map{
+                margin-right: 20px;
+                min-width: 200px;
             }
         </style>
     </head>
     <body>
 
-        <div class="control">
+        <div class="control" style="he">
             <select name="select-map" id="select-map">
                 <option value="none">none</option>
             </select>
@@ -26,14 +48,14 @@
             </label>
         </div>
 
-        <div id="map"></div>
+        <div id="map" style="height: 100%;"></div>
 
         <script src="/static/js/jquery-3.1.1.min.js"></script>
         <script src="/static/js/leaflet.js"></script>
         <script>
             (function () {
                 function updateTileLayer() {
-                    
+
                     //Remove all layers
                     map.eachLayer(function (layer) {
                         map.removeLayer(layer);
