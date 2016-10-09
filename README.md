@@ -1,6 +1,6 @@
 # GO-Tile-Cache
 
-Tile cache server with gray-scale image converting ability.
+Tile proxy caching server with gray-scale image converting ability.
 
 ## Usage
 

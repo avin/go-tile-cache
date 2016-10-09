@@ -9,15 +9,36 @@ import (
 	"time"
 	"path/filepath"
 	"errors"
+	"fmt"
+	"io/ioutil"
+	"encoding/json"
+	"math/rand"
+	"strings"
 )
 
 type TileManager struct {
-	X string
-	Y string
-	Z string
+	X      string
+	Y      string
+	Z      string
 	Server string
-	GS bool
+	GS     bool
+	TTL    time.Duration
 }
+
+type ServersConfig struct {
+	Servers []ServersConfigItem
+}
+
+type ServersConfigItem struct {
+	Alias string
+	Url     string
+	Domains []string
+}
+
+
+// define the type as a generic map
+var serversConfig ServersConfig
+
 
 //create grayScale image version
 func grayScale(filename string) string {
@@ -67,7 +88,7 @@ func downloadFile(fileName string, url string) (error) {
 	}
 	defer resp.Body.Close()
 
-	if (resp.StatusCode != 200){
+	if (resp.StatusCode != 200) {
 		return errors.New("error status code")
 	}
 
@@ -90,7 +111,35 @@ func NewTileManager() *TileManager {
 }
 
 //get file from cache or download (and convert to GS)
-func (tm *TileManager) Get(url string, ttl time.Duration) (string, error) {
+func (tm *TileManager) getTileUrl() (string, error) {
+
+	var url string
+
+	for _, serverItem:= range serversConfig.Servers {
+		if (serverItem.Alias == tm.Server){
+
+			domain := serverItem.Domains[rand.Intn(len(serverItem.Domains))]
+
+			url = strings.Replace(serverItem.Url, "{d}", domain, -1)
+			url = strings.Replace(url, "{x}", tm.X, -1)
+			url = strings.Replace(url, "{y}", tm.Y, -1)
+			url = strings.Replace(url, "{z}", tm.Z, -1)
+
+			break;
+		}
+	}
+
+	if (len(url) == 0){
+		return "", errors.New("Server ["+ tm.Server +"] not configured")
+	}
+
+	fmt.Println(url)
+
+	return url, nil
+}
+
+//get file from cache or download (and convert to GS)
+func (tm *TileManager) Get() (string, error) {
 
 	//make path
 	path := filepath.Join("cache", tm.Server, tm.X, tm.Y)
@@ -103,25 +152,30 @@ func (tm *TileManager) Get(url string, ttl time.Duration) (string, error) {
 		toDownload = true;
 	} else {
 		//if file older then ttl duration
-		if (time.Now().Add(-ttl).After(file.ModTime())) {
+		if (time.Now().Add(0-tm.TTL).After(file.ModTime())) {
 			toDownload = true;
 		}
 	}
 
 	//if we should download file
-	if (toDownload){
+	if (toDownload) {
 
-		tries:=0 //tries to get file
+		url, err := tm.getTileUrl()
+		if (err != nil) {
+			return "", err;
+		}
+
+		tries := 0 //tries to get file
 		for {
 			tries++
 			err := downloadFile(fileName, url)
 			//if file get success - exit try loop
-			if (err == nil){
+			if (err == nil) {
 				break
 			}
 
 			//If cannot get file in 5 tries - return error
-			if (err != nil && (tries>5)){
+			if (err != nil && (tries > 5)) {
 				return "", err
 			}
 		}
@@ -134,4 +188,16 @@ func (tm *TileManager) Get(url string, ttl time.Duration) (string, error) {
 	}
 
 	return fileName, nil
+}
+
+func init() {
+	serversConfigFile := filepath.Join("conf", "servers.json")
+
+	file, err := ioutil.ReadFile(serversConfigFile)
+	if err != nil {
+		fmt.Println("Cannot open servers configuration file:", err)
+		os.Exit(1)
+	}
+
+	json.Unmarshal(file, &serversConfig)
 }

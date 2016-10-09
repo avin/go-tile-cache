@@ -2,13 +2,11 @@ package controllers
 
 import (
 	"github.com/astaxie/beego"
-	"math/rand"
 	"net/http"
 	"time"
 	"strconv"
 	"go-tile-cache/models"
 	"path/filepath"
-	"fmt"
 )
 
 type TileController struct {
@@ -16,7 +14,7 @@ type TileController struct {
 }
 
 //Return blank image
-func returnBlankTile(c *TileController){
+func returnBlankTile(c *TileController) {
 	blankTileFile := filepath.Join("static", "img", "blank.png")
 	c.Ctx.Output.Header("Content-Type", "image/png")
 	c.Ctx.Output.Header("Content-Transfer-Encoding", "binary")
@@ -37,38 +35,13 @@ func (c *TileController) Get() {
 
 	var server = c.GetString("server"); //tile server
 
-	var tileServers []string
-	var url string
-
-	switch server {
-	case "mapnik":
-		tileServers = append(tileServers, "a.tile.openstreetmap.org")
-		tileServers = append(tileServers, "b.tile.openstreetmap.org")
-		tileServers = append(tileServers, "c.tile.openstreetmap.org")
-
-		randomServer := tileServers[rand.Intn(len(tileServers))]
-		url = "http://" + randomServer + "/" + z + "/" + x + "/" + y + ".png";
-		fmt.Println(url)
-
-	case "yandex":
-		tileServers = append(tileServers, "vec01.maps.yandex.net")
-		tileServers = append(tileServers, "vec02.maps.yandex.net")
-		tileServers = append(tileServers, "vec03.maps.yandex.net")
-		tileServers = append(tileServers, "vec04.maps.yandex.net")
-
-		randomServer := tileServers[rand.Intn(len(tileServers))]
-		url = "http://" + randomServer + "/tiles?l=map&v=4.113.1&x=" + x + "&y=" + y + "&z=" + z + "&scale=1&lang=ru_RU";
-	default:
-		returnBlankTile(c)
-	}
-
 	//create tile manager
-	var tileManager = models.TileManager{X: x, Y: y, Z: z, Server: server, GS: gs}
+	var tileManager = models.TileManager{X: x, Y: y, Z: z, Server: server, GS: gs, TTL: ttl}
 
 	//get tile file
-	fileName, err := tileManager.Get(url, ttl);
+	fileName, err := tileManager.Get();
 	//If cannot get tile file
-	if (err != nil){
+	if (err != nil) {
 		returnBlankTile(c)
 	}
 
