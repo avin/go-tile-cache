@@ -7,4 +7,5 @@ import (
 
 func init() {
     beego.Router("/", &controllers.TileController{})
+    beego.Router("/test", &controllers.TestController{})
 }

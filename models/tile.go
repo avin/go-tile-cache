@@ -14,6 +14,7 @@ import (
 	"encoding/json"
 	"math/rand"
 	"strings"
+	"github.com/astaxie/beego"
 )
 
 type TileManager struct {
@@ -32,7 +33,7 @@ type ServersConfig struct {
 type ServersConfigItem struct {
 	Alias string
 	Url     string
-	Domains []string
+	Subdomains []string
 }
 
 
@@ -53,7 +54,8 @@ func grayScale(filename string) string {
 	//decode PNG
 	src, err := png.Decode(infile)
 	if err != nil {
-		panic(err.Error())
+		//if we cannot decode it - use default version
+		return filename
 	}
 
 	//convert
@@ -120,9 +122,9 @@ func (tm *TileManager) getTileUrl() (string, error) {
 
 			url = serverItem.Url
 
-			if (serverItem.Domains != nil){
-				domain := serverItem.Domains[rand.Intn(len(serverItem.Domains))]
-				url = strings.Replace(url, "{d}", domain, -1)
+			if (serverItem.Subdomains != nil){
+				subdomain := serverItem.Subdomains[rand.Intn(len(serverItem.Subdomains))]
+				url = strings.Replace(url, "{s}", subdomain, -1)
 			}
 
 			url = strings.Replace(url, "{x}", tm.X, -1)
@@ -137,7 +139,9 @@ func (tm *TileManager) getTileUrl() (string, error) {
 		return "", errors.New("Server ["+ tm.Server +"] not configured")
 	}
 
-	fmt.Println(url)
+	if (beego.AppConfig.String("runmode") == "dev"){
+		fmt.Println(url)
+	}
 
 	return url, nil
 }

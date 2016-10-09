@@ -2,18 +2,18 @@
     "servers": [
         {
             "alias": "yandex-vec",
-            "url": "https://{d}.maps.yandex.net/tiles?l=map&v=4.113.1&x={x}&y={y}&z={z}&scale=1&lang=ru_RU",
-            "domains": ["vec01", "vec02", "vec03", "vec04"]
+            "url": "https://{s}.maps.yandex.net/tiles?l=map&v=4.113.1&x={x}&y={y}&z={z}&scale=1&lang=ru_RU",
+            "subdomains": ["vec01", "vec02", "vec03", "vec04"]
         },
         {
             "alias": "yandex-sat",
-            "url": "https://{d}.maps.yandex.net/tiles?l=map&v=4.113.1&x={x}&y={y}&z={z}&scale=1&lang=ru_RU",
-            "domains": ["sat01", "sat02", "sat03", "sat04"]
+            "url": "https://{s}.maps.yandex.net/tiles?l=sat&v=3.285.0&x={x}&y={y}&z={z}&scale=1&lang=ru_RU",
+            "subdomains": ["sat01", "sat02", "sat03", "sat04"]
         },
         {
             "alias": "mapnik",
-            "url": "https://{d}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-            "domains": ["a", "b", "c"]
+            "url": "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+            "subdomains": ["a", "b", "c"]
         }
     ]
 }
