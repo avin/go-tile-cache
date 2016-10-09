@@ -189,7 +189,7 @@ func init() {
 	config := GetConfig()
 
 	//Start clear old cache tile files ticker
-	ticker := time.NewTicker(time.Second * 10)
+	ticker := time.NewTicker(time.Minute * 30)
 	go func() {
 		for t := range ticker.C {
 			fmt.Println("Tick at", t)
@@ -198,7 +198,7 @@ func init() {
 
 				if file, err := os.Stat(path); err == nil {
 					//if file older then ttl duration
-					if (time.Now().Add(0 - config.TtlDuration).Before(file.ModTime())) {
+					if (time.Now().Add(0 - config.TtlDuration).After(file.ModTime())) {
 						//delete file/path
 						os.RemoveAll(path)
 					}
@@ -208,7 +208,7 @@ func init() {
 			}
 
 			err := filepath.Walk("cache", visit)
-			if (err != nil){
+			if (err != nil) {
 				fmt.Printf("filepath.Walk() returned %v\n", err)
 			}
 		}
