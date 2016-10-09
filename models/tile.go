@@ -207,7 +207,7 @@ func init() {
 				return nil
 			}
 
-			err := filepath.Walk("./", visit)
+			err := filepath.Walk("cache", visit)
 			if (err != nil){
 				fmt.Printf("filepath.Walk() returned %v\n", err)
 			}
