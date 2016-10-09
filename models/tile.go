@@ -118,9 +118,13 @@ func (tm *TileManager) getTileUrl() (string, error) {
 	for _, serverItem:= range serversConfig.Servers {
 		if (serverItem.Alias == tm.Server){
 
-			domain := serverItem.Domains[rand.Intn(len(serverItem.Domains))]
+			url = serverItem.Url
 
-			url = strings.Replace(serverItem.Url, "{d}", domain, -1)
+			if (serverItem.Domains != nil){
+				domain := serverItem.Domains[rand.Intn(len(serverItem.Domains))]
+				url = strings.Replace(url, "{d}", domain, -1)
+			}
+
 			url = strings.Replace(url, "{x}", tm.X, -1)
 			url = strings.Replace(url, "{y}", tm.Y, -1)
 			url = strings.Replace(url, "{z}", tm.Z, -1)
