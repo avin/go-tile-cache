@@ -14,6 +14,7 @@ type Config struct {
 	Ttl         int
 	TtlDuration time.Duration
 	Tries       int
+	Proxy	string
 }
 
 type ServersConfigItem struct {
@@ -46,6 +47,11 @@ func GetConfig() (*Config) {
 
 	//convert ttl to ttlDuration
 	config.TtlDuration = time.Duration(config.Ttl) * time.Second
+
+	//setup proxy
+	if (len(config.Proxy) > 0){
+		os.Setenv("HTTP_PROXY", config.Proxy)
+	}
 
 	configLoaded = true
 

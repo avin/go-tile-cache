@@ -11,11 +11,9 @@ go get github.com/harrydb/go/img/grayscale
 bee pack
 ```
 
-###
-
 ## Usage
 
 Configure tiles servers in `conf/config.json` file. Use new tile server in your map.
 ```
-http://SERVER-HOST:PORT/?x=310&y=158&z=9&server=yandex&gs=1
+http://SERVER-HOST:PORT/?x=310&y=158&z=9&server=SERVER_ALIAS&gs=1
 ```

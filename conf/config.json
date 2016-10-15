@@ -1,6 +1,7 @@
 {
     "ttl": 86000,
     "tries": 3,
+    "proxy": "",
     "servers": [
         {
             "alias": "yandex-vec",
