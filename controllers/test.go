@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"fmt"
 	"os"
+	"log"
 )
 
 type TestController struct {
@@ -14,7 +15,11 @@ type TestController struct {
 
 func (c *TestController) Get() {
 
-	serversConfigFile := filepath.Join("conf", "config.json")
+	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
+	if err != nil {
+		log.Fatal(err)
+	}
+	serversConfigFile := filepath.Join(dir, "conf", "config.json")
 
 	file, err := ioutil.ReadFile(serversConfigFile)
 	if err != nil {

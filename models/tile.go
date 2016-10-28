@@ -13,6 +13,7 @@ import (
 	"math/rand"
 	"strings"
 	"github.com/astaxie/beego"
+	"log"
 )
 
 type TileManager struct {
@@ -136,7 +137,11 @@ func (tm *TileManager) Get() (string, error) {
 	config := GetConfig()
 
 	//make path
-	path := filepath.Join("cache", tm.Server, tm.X, tm.Y)
+	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
+	if err != nil {
+		log.Fatal(err)
+	}
+	path := filepath.Join(dir, "cache", tm.Server, tm.X, tm.Y)
 	os.MkdirAll(path, os.ModePerm)
 	fileName := filepath.Join(path, tm.Z + ".png")
 
@@ -207,7 +212,12 @@ func init() {
 				return nil
 			}
 
-			err := filepath.Walk("cache", visit)
+			dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
+			if err != nil {
+				log.Fatal(err)
+			}
+			path := filepath.Join(dir, "cache")
+			err = filepath.Walk(path, visit)
 			if (err != nil) {
 				fmt.Printf("filepath.Walk() returned %v\n", err)
 			}

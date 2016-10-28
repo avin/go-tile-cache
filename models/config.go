@@ -7,6 +7,7 @@ import (
 	"os"
 	"encoding/json"
 	"time"
+	"log"
 )
 
 type Config struct {
@@ -34,8 +35,14 @@ func GetConfig() (*Config) {
 		return &config
 	}
 
+
 	//read config file
-	serversConfigFile := filepath.Join("conf", "config.json")
+	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(dir)
+	serversConfigFile := filepath.Join(dir, "conf", "config.json")
 
 	file, err := ioutil.ReadFile(serversConfigFile)
 	if err != nil {
