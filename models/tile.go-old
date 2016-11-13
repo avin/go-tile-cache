@@ -2,6 +2,8 @@ package models
 
 import (
 	"os"
+	"image/png"
+	"github.com/harrydb/go/img/grayscale"
 	"net/http"
 	"io"
 	"time"
@@ -12,7 +14,6 @@ import (
 	"strings"
 	"github.com/astaxie/beego"
 	"log"
-	"gopkg.in/mgo.v2"
 )
 
 type TileManager struct {
@@ -21,6 +22,45 @@ type TileManager struct {
 	Z      string
 	Server string
 	GS     bool
+}
+
+//create grayScale image version
+func grayScale(filename string) string {
+
+	//read file
+	infile, err := os.Open(filename)
+	if err != nil {
+		panic(err.Error())
+	}
+	defer infile.Close()
+
+	//decode PNG
+	src, err := png.Decode(infile)
+	if err != nil {
+		//if we cannot decode it - use default version
+		return filename
+	}
+
+	//convert
+	gray := grayscale.Convert(src, grayscale.ToGrayLuminance)
+
+	//get name for converted file
+	outFileName := filename[:len(filename) - 4] + ".gs.png"
+
+	if _, err := os.Stat(outFileName); err == nil {
+		//if file exist - return it now
+		return outFileName
+	}
+
+	//save converted file
+	outfile, err := os.Create(outFileName)
+	if err != nil {
+		panic(err.Error())
+	}
+	defer outfile.Close()
+	png.Encode(outfile, gray)
+
+	return outFileName
 }
 
 //download file
@@ -94,41 +134,66 @@ func (tm *TileManager) getTileUrl() (string, error) {
 //get file from cache or download (and convert to GS)
 func (tm *TileManager) Get() (string, error) {
 
-	type Person struct {
-		Name  string
-		Phone string
-	}
-
 	config := GetConfig()
 
-	session, err := mgo.Dial(config.Mongodb.Host)
-	if err != nil {
-		panic(err)
-	}
-	defer session.Close()
-
-	// Optional. Switch the session to a monotonic behavior.
-	session.SetMode(mgo.Monotonic, true)
-
-	file, err := session.DB(config.Mongodb.DbName).GridFS("fs").Create("myfile.txt")
-	_, err = file.Write([]byte("Hello world!"))
+	//make path
+	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
 	if err != nil {
 		log.Fatal(err)
 	}
+	path := filepath.Join(dir, "cache", tm.Server, tm.X, tm.Y)
+	os.MkdirAll(path, os.ModePerm)
+	fileName := filepath.Join(path, tm.Z)
 
-	err = file.Close()
-	if err != nil {
-		log.Fatal(err)
+	toDownload := false
+	if file, err := os.Stat(fileName); err != nil {
+		//if file not exist
+		toDownload = true;
+	} else {
+		//if file older then ttl duration
+		if (time.Now().Add(0 - config.TtlDuration).After(file.ModTime())) {
+			toDownload = true;
+		}
 	}
 
-	return "ok.png", nil
+	//if we should download file
+	if (toDownload) {
+
+		url, err := tm.getTileUrl()
+		if (err != nil) {
+			return "", err;
+		}
+
+		tries := 0 //tries to get file
+		for {
+			tries++
+			err := downloadFile(fileName, url)
+			//if file get success - exit try loop
+			if (err == nil) {
+				break
+			}
+
+			//If cannot get file in 5 tries - return error
+			if (err != nil && (tries >= config.Tries)) {
+				return "", err
+			}
+		}
+	}
+
+	//if we gonna get grayScale tile - convert it
+	if (tm.GS) {
+		gsFileName := grayScale(fileName)
+		return gsFileName, nil
+	}
+
+	return fileName, nil
 }
 
 func init() {
 
 	config := GetConfig()
 
-	if (config.ClearOldCache) {
+	if (config.ClearOldCache){
 		//Start clear old cache tile files ticker
 		ticker := time.NewTicker(time.Minute * 30)
 		go func() {
@@ -160,5 +225,5 @@ func init() {
 			}
 		}()
 	}
-
+	
 }

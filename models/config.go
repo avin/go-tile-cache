@@ -11,11 +11,19 @@ import (
 )
 
 type Config struct {
-	Servers     []ServersConfigItem
-	Ttl         int
-	TtlDuration time.Duration
-	Tries       int
-	Proxy	string
+	Servers       []ServersConfigItem
+	Ttl           int
+	TtlDuration   time.Duration
+	Tries         int
+	Proxy         string
+	Cache         string
+	ClearOldCache bool
+	Mongodb       MongodbConfig
+}
+
+type MongodbConfig struct {
+	Host   string
+	DbName string
 }
 
 type ServersConfigItem struct {
@@ -34,7 +42,6 @@ func GetConfig() (*Config) {
 	if (configLoaded) {
 		return &config
 	}
-
 
 	//read config file
 	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
@@ -56,7 +63,7 @@ func GetConfig() (*Config) {
 	config.TtlDuration = time.Duration(config.Ttl) * time.Second
 
 	//setup proxy
-	if (len(config.Proxy) > 0){
+	if (len(config.Proxy) > 0) {
 		os.Setenv("HTTP_PROXY", config.Proxy)
 	}
 

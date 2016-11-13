@@ -1,22 +1,42 @@
 {
-    "ttl": 86000,
-    "tries": 3,
-    "proxy": "",
-    "servers": [
-        {
-            "alias": "yandex-vec",
-            "url": "https://{s}.maps.yandex.net/tiles?l=map&v=4.113.1&x={x}&y={y}&z={z}&scale=1&lang=ru_RU",
-            "subdomains": ["vec01", "vec02", "vec03", "vec04"]
-        },
-        {
-            "alias": "yandex-sat",
-            "url": "https://{s}.maps.yandex.net/tiles?l=sat&v=3.285.0&x={x}&y={y}&z={z}&scale=1&lang=ru_RU",
-            "subdomains": ["sat01", "sat02", "sat03", "sat04"]
-        },
-        {
-            "alias": "mapnik",
-            "url": "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-            "subdomains": ["a", "b", "c"]
-        }
-    ]
+  "ttl": 86000,
+  "tries": 3,
+  "proxy": "",
+  "clearOldCache": false,
+  "cache": "file",
+  "mongodb": {
+    "host": "localhost",
+    "dbName": "go-tile-cache"
+  },
+  "servers": [
+    {
+      "alias": "yandex-vec",
+      "url": "https://{s}.maps.yandex.net/tiles?l=map&v=4.113.1&x={x}&y={y}&z={z}&scale=1&lang=ru_RU",
+      "subdomains": [
+        "vec01",
+        "vec02",
+        "vec03",
+        "vec04"
+      ]
+    },
+    {
+      "alias": "yandex-sat",
+      "url": "https://{s}.maps.yandex.net/tiles?l=sat&v=3.285.0&x={x}&y={y}&z={z}&scale=1&lang=ru_RU",
+      "subdomains": [
+        "sat01",
+        "sat02",
+        "sat03",
+        "sat04"
+      ]
+    },
+    {
+      "alias": "mapnik",
+      "url": "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+      "subdomains": [
+        "a",
+        "b",
+        "c"
+      ]
+    }
+  ]
 }

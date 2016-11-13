@@ -18,6 +18,11 @@ Configure tiles servers in `conf/config.json` file. Use new tile server in your 
 http://SERVER-HOST:PORT/?x=310&y=158&z=9&server=SERVER_ALIAS&gs=1
 ```
 
+## Testing map
+```
+http://localhost:8080/?x={x}&y={y}&z={z}&server=yandex-vec
+```
+
 ## Windows run
 
 To run this app as service on Windows:
